@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Smart Expense Splitter</title>
+    <style>
+        body {
+            font-family: Arial;
+            background: #f4f6f9;
+            padding: 20px;
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+
+        input, button {
+            padding: 8px;
+            margin: 5px 0;
+            width: 100%;
+        }
+
+        button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #45a049;
+        }
+
+        .result {
+            margin-top: 20px;
+            background: #eef;
+            padding: 10px;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Smart Expense Splitter</h1>
+
+<div class="container">
+
+    <h3>Add Member</h3>
+    <input type="text" id="memberName" placeholder="Enter name">
+    <button onclick="addMember()">Add Member</button>
+
+    <h3>Add Expense</h3>
+    <select id="memberSelect"></select>
+    <input type="number" id="amount" placeholder="Enter amount">
+    <button onclick="addExpense()">Add Expense</button>
+
+    <button onclick="calculate()">Split Expenses</button>
+
+    <div class="result" id="result"></div>
+
+</div>
+
+<script>
+    let members = {};
+    let transactions = [];
+
+    function addMember() {
+        let name = document.getElementById("memberName").value;
+        if (name && !members[name]) {
+            members[name] = 0;
+            let option = document.createElement("option");
+            option.text = name;
+            option.value = name;
+            document.getElementById("memberSelect").add(option);
+        }
+        document.getElementById("memberName").value = "";
+    }
+
+    function addExpense() {
+        let name = document.getElementById("memberSelect").value;
+        let amount = parseFloat(document.getElementById("amount").value);
+
+        if (name && amount > 0) {
+            members[name] += amount;
+        }
+
+        document.getElementById("amount").value = "";
+    }
+
+    function calculate() {
+        let total = 0;
+        let resultDiv = document.getElementById("result");
+        resultDiv.innerHTML = "";
+
+        for (let person in members) {
+            total += members[person];
+        }
+
+        let avg = total / Object.keys(members).length;
+
+        let creditors = [];
+        let debtors = [];
+
+        for (let person in members) {
+            let balance = members[person] - avg;
+
+            if (balance > 0) {
+                creditors.push({name: person, amount: balance});
+            } else if (balance < 0) {
+                debtors.push({name: person, amount: -balance});
+            }
+        }
+
+        while (creditors.length && debtors.length) {
+            let creditor = creditors[0];
+            let debtor = debtors[0];
+
+            let minAmount = Math.min(creditor.amount, debtor.amount);
+
+            resultDiv.innerHTML += 
+                `<p><b>${debtor.name}</b> pays <b>${creditor.name}</b> ${minAmount.toFixed(2)}</p>`;
+
+            creditor.amount -= minAmount;
+            debtor.amount -= minAmount;
+
+            if (creditor.amount === 0) creditors.shift();
+            if (debtor.amount === 0) debtors.shift();
+        }
+    }
+</script>
+
+</body>
+</html>
